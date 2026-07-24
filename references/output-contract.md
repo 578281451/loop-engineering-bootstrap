@@ -35,3 +35,11 @@ does not perform project analysis or fill project-specific references.
 
 Do not require `AGENTS.md` unless the target project actually contains it.
 Do not create a second copy of an existing project constitution.
+
+## Skill Distribution And Updates
+
+The Skill repository is the source of truth. An installed Skill is a local
+copy, so updates require checking the remote repository and replacing the
+installed copy. The bundled updater supports check-only mode, GitHub/Gitee
+sources, timestamped backups, and restoration when copying fails. A host Agent
+must be restarted after an update to load the new Skill contents.

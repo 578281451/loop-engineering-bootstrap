@@ -116,6 +116,20 @@ python scripts/bootstrap_loop.py --root .
 
 脚本是增量式的：已存在的文件会被保留，只创建缺失文件。
 
+## 更新方式
+
+Skill 的更新来源是 Git 仓库。推荐使用 GitHub 作为主源，Gitee 作为国内镜像：
+
+```powershell
+# 只检查远程版本，不修改本地 Skill
+python scripts/update_skill.py --target "$env:USERPROFILE/.codex/skills/loop-engineering-bootstrap"
+
+# 使用 Gitee 检查并更新
+python scripts/update_skill.py --source https://gitee.com/tigerran/loop-engineering-bootstrap.git --target "$env:USERPROFILE/.codex/skills/loop-engineering-bootstrap" --apply
+```
+
+更新脚本会先 clone 到临时目录，更新前把当前 Skill 改名为带时间戳的备份目录；复制失败时自动恢复。更新完成后需要重新启动宿主 Agent，当前会话不会自动加载新版本。
+
 ## 适用场景
 
 - 新项目初始化 Agent 工作规范

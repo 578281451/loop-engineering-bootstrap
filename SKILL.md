@@ -116,6 +116,20 @@ Report created files, preserved project-specific references, validation output,
 and any user decisions still needed. Never claim E2E coverage was executed
 unless a browser test actually ran and produced evidence.
 
+## Updating This Skill
+
+The Skill is distributed from the Git repository, not self-modified during a
+running task. To check or update an installed copy, use the bundled script:
+
+```powershell
+python scripts/update_skill.py --target <installed-skill-directory>
+python scripts/update_skill.py --target <installed-skill-directory> --apply
+```
+
+Pass the Gitee repository with `--source` when GitHub is unavailable. The
+script stages the remote copy, backs up the current directory with a timestamp,
+restores it if copying fails, and tells the user to restart the host Agent.
+
 ## Bundled Resources
 
 - `references/extraction-rubric.md`: classification rules for separating
