@@ -174,6 +174,14 @@ python scripts/update_skill.py --source https://gitee.com/tigerran/loop-engineer
 - `README.md`：项目功能、输出文件和使用说明
 - `references/`：规范抽取和输出契约
 - `scripts/bootstrap_loop.py`：增量式 `.agent` 初始化脚本
+- `scripts/integrate_agent_entry.py`：接入宿主 Agent 规则入口
+- `scripts/update_skill.py`：检查并安全更新已安装 Skill
+- `docs/install.md`：安装和初始化说明
+- `docs/update.md`：更新和恢复说明
+- `CHANGELOG.md`：版本变更记录
+- `CONTRIBUTING.md`：贡献和发布检查
+- `LICENSE`：MIT 开源许可
+- `.gitignore`：排除 Python 缓存、测试缓存和打包产物
 - `evals/evals.json`：Skill 评估用例
 
 ## 仓库

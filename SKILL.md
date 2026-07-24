@@ -167,4 +167,7 @@ restores it if copying fails, and tells the user to restart the host Agent.
 - `references/output-contract.md`: required files and validation invariants.
 - `scripts/bootstrap_loop.py`: additive directory and starter-file generator.
 - `scripts/integrate_agent_entry.py`: idempotently adds the host-agent bridge.
+- `scripts/update_skill.py`: checks and safely updates an installed copy.
+- `docs/install.md` and `docs/update.md`: installation and update procedures.
+- `CHANGELOG.md` and `CONTRIBUTING.md`: release history and contribution rules.
 - `evals/evals.json`: representative skill test prompts.
