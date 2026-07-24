@@ -25,6 +25,8 @@
 - 为前端项目增加 E2E 验收门禁
 - 保留项目级规范原文件，不覆盖已有内容
 - 执行路径、Schema、配置引用和测试校验
+- 自动识别 `CLAUDE.md`、`AGENTS.md`、`GEMINI.md`、Copilot 等宿主 Agent 规则入口
+- 将 `.agent` 工作协议以幂等方式接入宿主规则文件
 
 ## 生成内容
 
@@ -56,6 +58,20 @@
 | `.agent/compiler/` | Knowledge Patch 的校验、提议、审核、应用和审计程序 |
 | `.agent/patches/` | proposed/reviewed/applied/rejected 的知识变更状态目录 |
 | `.agent/audit/` | Compiler 操作的追加式审计记录 |
+
+## 宿主 Agent 接入
+
+`.agent` 不会因为被创建就自动成为 Claude Code 或其他 Agent 的规则。Skill 会在生成完成后自动寻找宿主入口，并写入带有稳定标记的 Loop Engineering 协议块：
+
+```text
+<!-- LOOP-ENGINEERING:START -->
+...
+<!-- LOOP-ENGINEERING:END -->
+```
+
+协议块要求 Agent 在任务前读取规则和索引、创建 Task/PLAN，执行中更新状态，完成后运行测试、记录 Event、完成 Review，并通过 Compiler 更新可复用知识。重复运行 Skill 时只更新这一个区块，不会重复追加。
+
+支持的入口包括 `CLAUDE.md`、`.claude/CLAUDE.md`、`AGENTS.md`、`.agents/AGENTS.md`、`GEMINI.md` 和 `.github/copilot-instructions.md`。Cursor 等只有目录规则的宿主需要由 AI 根据现有规则文件做等价接入。
 
 典型目录结构如下：
 
@@ -112,6 +128,12 @@ Skill 自带的初始化脚本也可以单独运行：
 
 ```powershell
 python scripts/bootstrap_loop.py --root .
+```
+
+宿主规则接入也可以单独执行：
+
+```powershell
+python scripts/integrate_agent_entry.py --root .
 ```
 
 脚本是增量式的：已存在的文件会被保留，只创建缺失文件。

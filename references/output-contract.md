@@ -11,6 +11,7 @@ The generated layer must provide:
 - append-only audit records;
 - requirements and acceptance templates;
 - frontend E2E acceptance when a frontend exists;
+- a host-agent instruction bridge that makes `.agent` operational;
 - offline validation and focused tests.
 
 ## File Responsibilities
@@ -43,3 +44,11 @@ copy, so updates require checking the remote repository and replacing the
 installed copy. The bundled updater supports check-only mode, GitHub/Gitee
 sources, timestamped backups, and restoration when copying fails. A host Agent
 must be restarted after an update to load the new Skill contents.
+
+## Host Integration Contract
+
+The generated `.agent` directory is not sufficient by itself. The bootstrap
+must identify the target host's instruction entry and add one marked bridge
+block. The block must reference the constitution, README, current state,
+knowledge index, task record, plan, verification, Event, Review, and Compiler.
+The bridge must be idempotent and preserve all unrelated host instructions.

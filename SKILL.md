@@ -39,6 +39,21 @@ Read, when present:
 - existing `.agent/`, `.claude/`, or equivalent agent configuration
 - package manifests and test configuration only when needed to identify commands
 
+Also detect the host agent's instruction entry. Use the first applicable
+existing file from this adapter list, and inspect all applicable files when a
+project uses more than one agent:
+
+| Host | Instruction entry |
+|---|---|
+| Claude Code | `CLAUDE.md` or `.claude/CLAUDE.md` |
+| Codex / generic agents | `AGENTS.md` or `.agents/AGENTS.md` |
+| Gemini | `GEMINI.md` |
+| GitHub Copilot | `.github/copilot-instructions.md` |
+| Cursor | `.cursor/rules/` |
+
+Do not assume the host from the user's wording alone. Read the existing entry,
+preserve its rules, and add the Loop Engineering bridge described below.
+
 Classify each rule as `portable_loop`, `project_constraint`, `technology_detail`,
 or `historical_or_local`. Only the first category belongs in the reusable
 constitution. Project constraints remain referenced from their original files.
@@ -59,6 +74,21 @@ python <skill-path>/scripts/bootstrap_loop.py --root .
 The script is additive: it creates only missing files and reports conflicts.
 It does not fill project-specific values automatically. The AI must then edit
 the generated index, project mapping, and config using the discovery report.
+
+After the `.agent` layer exists, integrate it into the detected host entry.
+Use `scripts/integrate_agent_entry.py --root .` or make the equivalent focused
+edit. The integration is part of bootstrapping, not a follow-up instruction for
+the user.
+
+The bridge must be short and host-neutral. It must tell the host Agent to read
+`.agent/constitution.md`, `.agent/README.md`, current state, the task record,
+and relevant indexed knowledge before work; to create a task and plan before
+mutation; to update state during work; and to record evidence, Event, review,
+and any Knowledge Patch after work. It must also state that `.agent` documents
+are operational instructions for this project, not optional reference notes.
+
+Use stable markers so repeated Skill runs update one block instead of appending
+duplicates. Show the host-entry diff in the final report.
 
 ### 3. Generate Portable Documents
 
@@ -136,4 +166,5 @@ restores it if copying fails, and tells the user to restart the host Agent.
   portable process principles from project-specific constraints.
 - `references/output-contract.md`: required files and validation invariants.
 - `scripts/bootstrap_loop.py`: additive directory and starter-file generator.
+- `scripts/integrate_agent_entry.py`: idempotently adds the host-agent bridge.
 - `evals/evals.json`: representative skill test prompts.
