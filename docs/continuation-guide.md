@@ -1,5 +1,11 @@
 # 跨对话执行指南
 
+## 设计参考
+
+本 Skill 的运行时设计参考了 [cobusgreyling/loop-engineering](https://github.com/cobusgreyling/loop-engineering) 的以下做法：统一 CLI 入口、L1 report-only、doctor/status、预算与停止规则、运行日志、门禁、上下文清单、主 Agent/子 Agent 协作和独立 verifier。
+
+本 Skill 没有照搬其完整 Fleet、MCP、调度器、复杂 worktree 或无人值守自动修复架构，而是保留轻量 `.agent` 文档层和 Python CLI，默认不自动修改、合并、推送或部署。以下流程是本 Skill 的实际执行规则。
+
 这份文档是给下一次对话中的 AI 看的。它定义了任务开始、执行、分派和收尾时的固定动作。用户不需要再次解释 Loop Engineering 规则；AI 必须先读取本文件对应的 Skill，以及目标项目中的 `.agent/README.md` 和 `.agent/constitution.md`。
 
 ## 每次新对话开始

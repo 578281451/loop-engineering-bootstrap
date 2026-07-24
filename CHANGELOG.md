@@ -18,3 +18,4 @@
 - Add doctor, status, validate, bounded context, and denylist gate commands.
 - Add budget, run-log, coordination, verifier, workflow pattern, and CI templates.
 - Add cross-conversation continuation guide and generated resume checklist.
+- Document the external loop-engineering design reference and what was intentionally omitted.

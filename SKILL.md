@@ -15,6 +15,15 @@ compatibility: Requires Python 3.10+, a writable project root, and PyYAML plus j
 
 # Loop Engineering Bootstrap
 
+## Design Reference
+
+The runtime patterns are informed by
+`cobusgreyling/loop-engineering`: CLI front door, L1 report-only rollout,
+budgets, gates, bounded context, run evidence, delegation, and independent
+verification. This Skill deliberately implements a smaller document-plus-CLI
+layer and does not require the reference project's Fleet, MCP, scheduler, or
+unattended automation stack.
+
 Use this skill to create a portable `.agent` operating layer from an existing
 project. The goal is a small, auditable system that helps future agents load
 the right context, plan work, verify behavior, and compile durable knowledge.

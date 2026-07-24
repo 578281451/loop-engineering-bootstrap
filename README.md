@@ -191,6 +191,15 @@ python scripts/update_skill.py --source https://gitee.com/tigerran/loop-engineer
 
 ## Lightweight Runtime
 
+### Design reference
+
+The runtime takes lightweight, portable ideas from
+[cobusgreyling/loop-engineering](https://github.com/cobusgreyling/loop-engineering):
+one CLI front door, L1 report-only operation, doctor/status, budgets, gates,
+bounded context, run evidence, parent/child coordination, and independent
+verification. It intentionally does not copy that project's full Fleet/MCP,
+scheduler, unattended repair, or heavyweight worktree architecture.
+
 For a new conversation, follow [the continuation guide](docs/continuation-guide.md).
 It defines the exact resume order, task/plan rule, context budget, parent/child
 delegation, independent verification, E2E evidence, and completion checklist.
