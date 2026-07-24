@@ -1,5 +1,6 @@
 from __future__ import annotations
 import argparse, hashlib, json
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 try:
@@ -33,6 +34,19 @@ def append_jsonl(path: Path, value: dict[str, Any]) -> None:
     with path.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(value, ensure_ascii=False) + "\n")
 
+def now() -> str:
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+def update_state(root: Path, task_id: str | None, phase: str, **extra: Any) -> None:
+    path = root / ".agent/state/current.yaml"
+    state = load_yaml(path)
+    state.update({"version": 1, "updated_at": now(), "phase": phase, "current_task_id": task_id, **extra})
+    if yaml is not None:
+        path.write_text(yaml.safe_dump(state, allow_unicode=True, sort_keys=False), encoding="utf-8")
+
+def log_run(root: Path, task_id: str | None, outcome: str, **extra: Any) -> None:
+    append_jsonl(root / ".agent/loop-run-log.jsonl", {"timestamp": now(), "task_id": task_id, "outcome": outcome, **extra})
+
 def task_key(root: Path, goal: str, scope: list[str]) -> str:
     raw = normalize(goal) + "|" + "|".join(sorted(normalize(x) for x in scope))
     return hashlib.sha256(raw.encode()).hexdigest()[:16]
@@ -42,9 +56,10 @@ def task_start(root: Path, goal: str, scope: list[str]):
     if tasks.exists(): rows = [json.loads(x) for x in tasks.read_text(encoding="utf-8").splitlines() if x.strip()]
     existing = next((x for x in rows if x.get("task_key") == key and x.get("status") in {"active", "interrupted"}), None)
     if existing: return {"command":"task_start", **existing, "status":"resumed"}, EXIT_OK
-    task_id = "TASK-" + key; attempt_id = "ATT-1"
-    value = {"task_id":task_id, "attempt_id":attempt_id, "task_key":key, "goal":goal, "scope":scope, "status":"active", "phase":"discovery", "checkpoint":"created"}
-    append_jsonl(tasks, value); append_jsonl(root/".agent/events/events.jsonl", {"type":"task_started", **value})
+    task_id = "TASK-" + key; attempt_id = "ATT-1"; timestamp = now()
+    value = {"id":task_id, "task_id":task_id, "attempt_id":attempt_id, "task_key":key, "title":goal, "goal":goal, "created_at":timestamp, "owner":"orchestrator", "model_tier":"medium", "scope":{"included":scope, "excluded":[]}, "acceptance":[], "status":"active", "phase":"discovery", "checkpoint":"created"}
+    event = {"type":"task_started", "timestamp":timestamp, "task_id":task_id, "checkpoint":"created"}
+    append_jsonl(tasks, value); append_jsonl(root/".agent/events/events.jsonl", event); update_state(root, task_id, "DISCOVERY", goal=goal, in_progress=[task_id], next_actions=["create plan"]); log_run(root, task_id, "started", attempt_id=attempt_id)
     return {"command":"task_start", **value, "status":"created", "routing":route(goal, scope)}, EXIT_OK
 
 def task_status(root: Path, task_id: str):
@@ -59,7 +74,10 @@ def task_update(root: Path, task_id: str, state: str, checkpoint: str):
     if not found: return {"command":"task_update", "status":"missing", "task_id":task_id}, EXIT_BLOCKED
     found.update({"status":state, "checkpoint":checkpoint, "phase":"completed" if state == "completed" else found.get("phase")})
     path.write_text("\n".join(json.dumps(x, ensure_ascii=False) for x in rows) + "\n", encoding="utf-8")
-    append_jsonl(root/".agent/events/events.jsonl", {"type":"task_" + state, "task_id":task_id, "checkpoint":checkpoint})
+    event_type = "task_completed" if state == "completed" else "task_failed"
+    append_jsonl(root/".agent/events/events.jsonl", {"type":event_type, "timestamp":now(), "task_id":task_id, "checkpoint":checkpoint})
+    update_state(root, None if state == "completed" else task_id, "DONE" if state == "completed" else "BLOCKED", completed=[task_id] if state == "completed" else [], in_progress=[] if state == "completed" else [task_id], next_actions=[] if state == "completed" else ["inspect failure"])
+    log_run(root, task_id, state, checkpoint=checkpoint)
     return {"command":"task_update", "status":state, "task_id":task_id, "checkpoint":checkpoint}, EXIT_OK
 
 def load_yaml(path: Path) -> dict[str, Any]:
@@ -95,6 +113,23 @@ def validate(root: Path):
     runtime = load_yaml(root / ".agent/runtime.yaml")
     if runtime.get("level") not in {"L1", "L2", "L3"}: errors.append("runtime.level must be L1, L2, or L3")
     if runtime.get("level") == "L3" and not runtime.get("human_gate", False): errors.append("L3 requires human_gate=true")
+    if runtime.get("max_subagents", 0) < 0: errors.append("runtime.max_subagents cannot be negative")
+    tasks = root / ".agent/tasks/index.jsonl"
+    if tasks.exists():
+        for line in tasks.read_text(encoding="utf-8").splitlines():
+            if not line.strip(): continue
+            try: record = json.loads(line)
+            except json.JSONDecodeError: errors.append("invalid task JSONL record"); continue
+            for field in ("id", "title", "created_at", "owner", "model_tier", "scope", "acceptance", "status"):
+                if field not in record: errors.append(f"task record missing {field}")
+    events = root / ".agent/events/events.jsonl"
+    if events.exists():
+        for line in events.read_text(encoding="utf-8").splitlines():
+            if not line.strip(): continue
+            try: record = json.loads(line)
+            except json.JSONDecodeError: errors.append("invalid event JSONL record"); continue
+            for field in ("type", "timestamp", "task_id"):
+                if field not in record: errors.append(f"event record missing {field}")
     return {"command":"validate", "status":"blocked" if errors else "healthy", "errors":errors}, EXIT_BLOCKED if errors else code
 
 def context(root: Path, task: str, budget: int):
