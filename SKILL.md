@@ -32,6 +32,13 @@ mechanism, run the independent closer/verifier, and report the actual mode. A
 delegation is unavailable, record `blocked_delegation` instead of pretending
 the task was orchestrated.
 
+Read `references/execution-gates.md` and
+`references/final-report-contract.md`. Every executable request is a Task,
+including service startup, log inspection, test execution, and diagnosis.
+Debug mode is never a protocol bypass. Before mutation or runtime commands,
+create or resume the Task and route it. Before claiming completion, record
+Task status, Event, run log, state, evidence, and the structured final report.
+
 ## Design Reference
 
 The runtime patterns are informed by
