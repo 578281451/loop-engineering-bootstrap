@@ -19,3 +19,4 @@
 - Add budget, run-log, coordination, verifier, workflow pattern, and CI templates.
 - Add cross-conversation continuation guide and generated resume checklist.
 - Document the external loop-engineering design reference and what was intentionally omitted.
+- Clarify that users provide the goal once and the Agent runs the interactive loop automatically.

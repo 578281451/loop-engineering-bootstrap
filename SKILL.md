@@ -15,6 +15,15 @@ compatibility: Requires Python 3.10+, a writable project root, and PyYAML plus j
 
 # Loop Engineering Bootstrap
 
+After initialization, a normal bug or feature request is enough. Do not make
+the user repeat task creation, planning, delegation, testing, state updates,
+or reporting as separate prompts. Read the project rules and state, create or
+resume the task, plan, decide delegation, implement when the user requested a
+change, verify, update state, and report. Ask only questions that materially
+change scope, safety, permission, or expected behavior. `L1/report_only`
+prevents unattended mutation, merge, push, and deployment; it does not prevent
+implementation in an explicitly requested interactive conversation.
+
 ## Design Reference
 
 The runtime patterns are informed by

@@ -3,6 +3,7 @@
 The generated layer must provide:
 
 - a continuation guide that lets a new Agent resume work without the previous conversation;
+- an interaction contract stating that a normal user goal triggers the complete interactive loop;
 
 - one portable `.agent/constitution.md`;
 - an operational README and project mapping;
