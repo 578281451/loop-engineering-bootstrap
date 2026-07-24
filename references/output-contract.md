@@ -2,6 +2,8 @@
 
 The generated layer must provide:
 
+- a continuation guide that lets a new Agent resume work without the previous conversation;
+
 - one portable `.agent/constitution.md`;
 - an operational README and project mapping;
 - config, context builder, and knowledge index with valid references;

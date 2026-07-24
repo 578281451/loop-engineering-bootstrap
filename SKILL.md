@@ -30,6 +30,11 @@ the right context, plan work, verify behavior, and compile durable knowledge.
 
 ## Workflow
 
+For cross-conversation continuity, follow `docs/continuation-guide.md`. It is
+the canonical sequence for starting, resuming, delegating, verifying, and
+closing a task. The generated project's `.agent/README.md` contains the same
+operational contract in project-local form.
+
 ### 1. Discover
 
 Read, when present:

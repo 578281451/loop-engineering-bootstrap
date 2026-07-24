@@ -17,3 +17,4 @@
 - Add lightweight L1 report-first runtime contract and generated CLI.
 - Add doctor, status, validate, bounded context, and denylist gate commands.
 - Add budget, run-log, coordination, verifier, workflow pattern, and CI templates.
+- Add cross-conversation continuation guide and generated resume checklist.

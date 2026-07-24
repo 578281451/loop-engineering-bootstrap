@@ -191,6 +191,10 @@ python scripts/update_skill.py --source https://gitee.com/tigerran/loop-engineer
 
 ## Lightweight Runtime
 
+For a new conversation, follow [the continuation guide](docs/continuation-guide.md).
+It defines the exact resume order, task/plan rule, context budget, parent/child
+delegation, independent verification, E2E evidence, and completion checklist.
+
 Version 0.3 adds a report-first runtime. After initialization, run:
 
 ```powershell
