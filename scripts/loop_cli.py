@@ -9,6 +9,59 @@ except ImportError:
 
 EXIT_OK, EXIT_WARN, EXIT_BLOCKED = 0, 1, 2
 
+def normalize(value: str) -> str:
+    return " ".join(value.lower().strip().split())
+
+def route(task: str, files: list[str]) -> dict[str, Any]:
+    text = normalize(task + " " + " ".join(files)); reasons = []
+    high = any(x in text for x in ("production", "migration", "security", "delete data", "architecture"))
+    cross = any(x in text for x in ("frontend", "backend", "api", "database", "cross-module", "multiple services"))
+    e2e = any(x in text for x in ("e2e", "user flow", "browser", "page", "frontend"))
+    if high:
+        level, mode, closer = "S3", "orchestrated", "independent_human_gate"; reasons.append("high_risk")
+    elif cross:
+        level, mode, closer = "S2", "orchestrated", "independent_verifier"; reasons.append("cross_boundary")
+    elif any(x in text for x in ("bug", "fix", "regression")) or e2e:
+        level, mode, closer = "S1", "single_agent", "lightweight_verifier"; reasons.append("verification_required")
+    else:
+        level, mode, closer = "S0", "single_agent", "inline"; reasons.extend(["one_scope", "low_risk"])
+    return {"level": level, "mode": mode, "delegate": level in {"S2", "S3"}, "closer": closer,
+            "reason_codes": reasons, "required_evidence": ["focused_test"] + (["frontend_e2e"] if e2e else [])}
+
+def append_jsonl(path: Path, value: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(value, ensure_ascii=False) + "\n")
+
+def task_key(root: Path, goal: str, scope: list[str]) -> str:
+    raw = normalize(goal) + "|" + "|".join(sorted(normalize(x) for x in scope))
+    return hashlib.sha256(raw.encode()).hexdigest()[:16]
+
+def task_start(root: Path, goal: str, scope: list[str]):
+    tasks = root / ".agent/tasks/index.jsonl"; key = task_key(root, goal, scope); rows = []
+    if tasks.exists(): rows = [json.loads(x) for x in tasks.read_text(encoding="utf-8").splitlines() if x.strip()]
+    existing = next((x for x in rows if x.get("task_key") == key and x.get("status") in {"active", "interrupted"}), None)
+    if existing: return {"command":"task_start", **existing, "status":"resumed"}, EXIT_OK
+    task_id = "TASK-" + key; attempt_id = "ATT-1"
+    value = {"task_id":task_id, "attempt_id":attempt_id, "task_key":key, "goal":goal, "scope":scope, "status":"active", "phase":"discovery", "checkpoint":"created"}
+    append_jsonl(tasks, value); append_jsonl(root/".agent/events/events.jsonl", {"type":"task_started", **value})
+    return {"command":"task_start", **value, "status":"created", "routing":route(goal, scope)}, EXIT_OK
+
+def task_status(root: Path, task_id: str):
+    path = root / ".agent/tasks/index.jsonl"
+    rows = [json.loads(x) for x in path.read_text(encoding="utf-8").splitlines() if x.strip()] if path.exists() else []
+    found = [x for x in rows if x.get("task_id") == task_id]
+    return {"command":"task_status", "status":"healthy" if found else "missing", "tasks":found}, EXIT_OK if found else EXIT_BLOCKED
+
+def task_update(root: Path, task_id: str, state: str, checkpoint: str):
+    path = root / ".agent/tasks/index.jsonl"; rows = [json.loads(x) for x in path.read_text(encoding="utf-8").splitlines() if x.strip()] if path.exists() else []
+    found = next((x for x in rows if x.get("task_id") == task_id), None)
+    if not found: return {"command":"task_update", "status":"missing", "task_id":task_id}, EXIT_BLOCKED
+    found.update({"status":state, "checkpoint":checkpoint, "phase":"completed" if state == "completed" else found.get("phase")})
+    path.write_text("\n".join(json.dumps(x, ensure_ascii=False) for x in rows) + "\n", encoding="utf-8")
+    append_jsonl(root/".agent/events/events.jsonl", {"type":"task_" + state, "task_id":task_id, "checkpoint":checkpoint})
+    return {"command":"task_update", "status":state, "task_id":task_id, "checkpoint":checkpoint}, EXIT_OK
+
 def load_yaml(path: Path) -> dict[str, Any]:
     if not path.exists(): return {}
     if yaml is None: raise RuntimeError("PyYAML is required for .agent runtime files")
@@ -64,12 +117,12 @@ def gate(root: Path, changed: list[str]):
 
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description="Loop Engineering report-first runtime")
-    p.add_argument("command", choices=["doctor","status","validate","context","gate"]); p.add_argument("--root", type=Path); p.add_argument("--json", action="store_true"); p.add_argument("--task", default="unspecified"); p.add_argument("--budget", type=int, default=50000); p.add_argument("files", nargs="*")
+    p.add_argument("command", choices=["doctor","status","validate","context","gate","route","task-start","task-status","task-finish","task-fail"]); p.add_argument("--root", type=Path); p.add_argument("--json", action="store_true"); p.add_argument("--task", default="unspecified"); p.add_argument("--task-id", default=""); p.add_argument("--checkpoint", default=""); p.add_argument("--budget", type=int, default=50000); p.add_argument("files", nargs="*")
     a, unknown = p.parse_known_args(argv)
-    if a.command == "gate": a.files.extend(unknown)
+    if a.command in {"gate", "route", "task-start"}: a.files.extend(unknown)
     elif unknown: p.error("unrecognized arguments: " + " ".join(unknown))
     root = (a.root or root_from_cli()).resolve()
-    fn = {"doctor":lambda:doctor(root), "status":lambda:status(root), "validate":lambda:validate(root), "context":lambda:context(root,a.task,a.budget), "gate":lambda:gate(root,a.files)}[a.command]
+    fn = {"doctor":lambda:doctor(root), "status":lambda:status(root), "validate":lambda:validate(root), "context":lambda:context(root,a.task,a.budget), "gate":lambda:gate(root,a.files), "route":lambda:(route(a.task,a.files), EXIT_OK), "task-start":lambda:task_start(root,a.task,a.files), "task-status":lambda:task_status(root,a.task_id), "task-finish":lambda:task_update(root,a.task_id,"completed",a.checkpoint), "task-fail":lambda:task_update(root,a.task_id,"failed",a.checkpoint)}[a.command]
     value, code = fn(); emit(value, a.json); return code
 
 if __name__ == "__main__": raise SystemExit(main())
