@@ -5,6 +5,11 @@ from pathlib import Path
 
 
 FILES = {
+    ".agent/VERSION": "1\n",
+    ".agent/runtime.yaml": "version: 1\nlevel: L1\nmode: report_only\nauto_fix: false\nauto_merge: false\nhuman_gate: false\nmax_subagents: 0\n",
+    ".agent/gate.yaml": "version: 1\nmax_changed_files: 50\ndenylist:\n  - .env\n  - .git\n  - secrets/\n  - credentials/\nprotected_operations:\n  - migrations\n  - production\n  - security\n",
+    ".agent/loop-budget.yaml": "version: 1\nmax_tokens: 100000\nmax_duration_minutes: 60\nmax_subagents: 0\nstop_at_percent: 100\nreport_only_at_percent: 80\nkill_switch: .agent/STOP\n",
+    ".agent/loop-run-log.jsonl": "",
     ".agent/constitution.md": """# Loop Engineering Constitution\n\nThis file contains portable process rules only. Project facts remain in project documents.\n\n## Rules\n\n- Plan before mutation and define testable acceptance.\n- Separate observed facts, assumptions, and recommendations.\n- Match verification and review to risk.\n- Load the smallest sufficient context through the knowledge index.\n- Change protected knowledge only through Event -> Patch -> Validate -> Review -> Apply -> Audit.\n- Preserve superseded knowledge and never silently overwrite it.\n- User-facing frontend workflows require browser E2E evidence or a reviewed, time-limited exception.\n""",
     ".agent/README.md": """# Loop Engineering\n\nRead the constitution, project authority, current state, and task record before work.\nLoad context through `index/knowledge-index.yaml`; record evidence; review durable knowledge; apply patches through the compiler.\n\nRun `python .agent/compiler/cli.py validate` before completion.\n""",
     ".agent/config.yaml": """version: 1\nproject:\n  name: project-name\n  purpose: project-purpose\nauthoritative_documents: []\noptional_documents: []\nworkflow:\n  require_plan: true\n  require_root_cause_for_bug: true\n  compiler_required_for_knowledge_changes: true\nrecords:\n  event_log: append_only\n  knowledge_patches: review_before_apply\n""",
@@ -15,6 +20,14 @@ FILES = {
     ".agent/state/blockers.yaml": """version: 1\nblockers: []\n""",
     ".agent/tasks/_template.yaml": """id: TASK-YYYYMMDD-N\ntitle: Task title\nstatus: draft\ncreated_at: 1970-01-01T00:00:00Z\nowner: agent-or-human\nmodel_tier: medium\nscope:\n  included: []\n  excluded: []\nacceptance:\n  - id: AC-1\n    statement: Testable acceptance criterion\n    evidence: command or artifact\n""",
     ".agent/acceptance/frontend-e2e.md": """# Frontend E2E Acceptance\n\nRecord workflow, route, preconditions, test data, browser, viewport, observable actions, assertions, command, and evidence artifact. A blocked run needs an independent reviewer, alternate evidence, and an expiry date.\n""",
+    ".agent/compiler/cli.py": Path(__file__).with_name("loop_cli.py").read_text(encoding="utf-8"),
+    ".agent/coordination/protocol.md": "# Coordination\n\nThe parent owns global state. Child tasks receive explicit scope and dependencies, write only their isolated worktree, and return changed files, tests, evidence, risks, blockers, and next action. A verifier returns APPROVE, REJECT, or ESCALATE_HUMAN without editing implementation files.\n",
+    ".agent/skills/loop-verifier/SKILL.md": "# Loop Verifier\n\nAct independently of the implementer. Inspect the result, diff, acceptance criteria, and evidence. Return APPROVE, REJECT, or ESCALATE_HUMAN with concrete reasons. Never modify implementation files.\n",
+    ".agent/patterns/feature-development.yaml": "name: feature-development\nlevel: L1\noutputs: [task, plan, tests, evidence, verifier-result]\n",
+    ".agent/patterns/bug-fix.yaml": "name: bug-fix\nlevel: L1\nrequired: [reproduction, root_cause, regression_test]\n",
+    ".agent/patterns/frontend-e2e.yaml": "name: frontend-e2e\nlevel: L1\nrequired: [route, browser, viewport, assertions, artifact]\n",
+    ".agent/patterns/code-review.yaml": "name: code-review\nlevel: L1\noutputs: [findings, risks, evidence]\n",
+    ".agent/patterns/documentation-sync.yaml": "name: documentation-sync\nlevel: L1\noutputs: [updated_source_of_truth, reference_validation]\n",
 }
 
 
@@ -35,7 +48,7 @@ def main() -> int:
         path.write_text(content, encoding="utf-8")
         created += 1
         print(f"created: {relative}")
-    for directory in ("events", "lessons", "rules", "skills", "memory", "decisions", "reviews", "hooks", "requirements", "schemas", "compiler", "audit"):
+    for directory in ("events", "lessons", "rules", "skills", "memory", "decisions", "reviews", "hooks", "requirements", "schemas", "compiler", "audit", "coordination", "patterns", "metrics"):
         (root / ".agent" / directory).mkdir(parents=True, exist_ok=True)
     print(f"created={created} preserved={conflicts}")
     return 0

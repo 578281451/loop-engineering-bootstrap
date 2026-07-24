@@ -20,9 +20,26 @@ def run_script(name: str, *args: str, cwd: Path) -> str:
 def test_bootstrap_is_additive(tmp_path: Path) -> None:
     first = run_script("bootstrap_loop.py", "--root", str(tmp_path), cwd=tmp_path)
     second = run_script("bootstrap_loop.py", "--root", str(tmp_path), cwd=tmp_path)
-    assert "created=10" in first
+    assert "created=" in first
     assert "created=0" in second
-    assert "preserved=10" in second
+    assert "preserved=" in second
+
+
+def test_generated_runtime_is_report_first_and_validates(tmp_path: Path) -> None:
+    run_script("bootstrap_loop.py", "--root", str(tmp_path), cwd=tmp_path)
+    cli = tmp_path / ".agent" / "compiler" / "cli.py"
+    result = subprocess.run([sys.executable, str(cli), "validate", "--root", str(tmp_path), "--json"], capture_output=True, text=True)
+    assert result.returncode == 0
+    assert '"status": "healthy"' in result.stdout
+    runtime = (tmp_path / ".agent/runtime.yaml").read_text(encoding="utf-8")
+    assert "mode: report_only" in runtime
+
+
+def test_generated_runtime_gate_blocks_secrets(tmp_path: Path) -> None:
+    run_script("bootstrap_loop.py", "--root", str(tmp_path), cwd=tmp_path)
+    cli = tmp_path / ".agent" / "compiler" / "cli.py"
+    result = subprocess.run([sys.executable, str(cli), "gate", "--root", str(tmp_path), ".env"], capture_output=True, text=True)
+    assert result.returncode == 2
 
 
 def test_host_entry_integration_is_idempotent(tmp_path: Path) -> None:

@@ -12,3 +12,8 @@
 
 - Initial Loop Engineering bootstrap Skill.
 - Add additive `.agent` skeleton generator and evaluation prompts.
+# 0.3.0
+
+- Add lightweight L1 report-first runtime contract and generated CLI.
+- Add doctor, status, validate, bounded context, and denylist gate commands.
+- Add budget, run-log, coordination, verifier, workflow pattern, and CI templates.

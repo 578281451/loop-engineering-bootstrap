@@ -188,3 +188,20 @@ python scripts/update_skill.py --source https://gitee.com/tigerran/loop-engineer
 
 - GitHub: https://github.com/578281451/loop-engineering-bootstrap
 - Gitee: https://gitee.com/tigerran/loop-engineering-bootstrap
+
+## Lightweight Runtime
+
+Version 0.3 adds a report-first runtime. After initialization, run:
+
+```powershell
+python .agent/compiler/cli.py doctor --json
+python .agent/compiler/cli.py context --task "implement checkout validation"
+python .agent/compiler/cli.py gate src/app.py src/app.test.py
+python .agent/compiler/cli.py validate
+```
+
+The default is `L1/report_only`: the runtime can inspect, bound context, plan,
+and report evidence, but does not autonomously modify application code. L2
+requires an isolated worktree and independent verifier; L3 requires a human
+gate. Parent agents retain global state while child tasks return structured
+results. Frontend changes still require the project's browser E2E evidence.
