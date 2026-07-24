@@ -1,0 +1,23 @@
+{
+  "skill_name": "loop-engineering-bootstrap",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Read this existing project's CLAUDE.md and docs, extract the reusable Loop Engineering rules, and initialize a portable .agent layer without copying the project's technology-specific rules.",
+      "expected_output": "A populated .agent layer, extraction report, references to project docs, and validation evidence.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "This repository already has a partial .agent folder and old project constitution. Upgrade it into a reusable Loop Engineering system and add frontend E2E acceptance requirements.",
+      "expected_output": "Existing files preserved where valid, missing compiler/schema/index files added, project constitution kept as reference, and E2E gate documented.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Create a downloadable skill that lets an AI bootstrap Loop Engineering in future projects by reading their own docs first.",
+      "expected_output": "A valid skill package with trigger metadata, extraction instructions, additive generator, validation workflow, and test prompts.",
+      "files": []
+    }
+  ]
+}
