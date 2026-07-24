@@ -33,6 +33,8 @@ def test_generated_runtime_is_report_first_and_validates(tmp_path: Path) -> None
     assert '"status": "healthy"' in result.stdout
     runtime = (tmp_path / ".agent/runtime.yaml").read_text(encoding="utf-8")
     assert "mode: report_only" in runtime
+    assert "max_subagents: 3" in runtime
+    assert "max_subagents: 3" in (tmp_path / ".agent/loop-budget.yaml").read_text(encoding="utf-8")
 
 
 def test_generated_runtime_gate_blocks_secrets(tmp_path: Path) -> None:

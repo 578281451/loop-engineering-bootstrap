@@ -114,6 +114,9 @@ def validate(root: Path):
     if runtime.get("level") not in {"L1", "L2", "L3"}: errors.append("runtime.level must be L1, L2, or L3")
     if runtime.get("level") == "L3" and not runtime.get("human_gate", False): errors.append("L3 requires human_gate=true")
     if runtime.get("max_subagents", 0) < 0: errors.append("runtime.max_subagents cannot be negative")
+    routing = load_yaml(root / ".agent/routing.yaml")
+    if int(routing.get("max_child_agents", 0)) > int(runtime.get("max_subagents", 0)):
+        errors.append("runtime.max_subagents must be >= routing.max_child_agents")
     tasks = root / ".agent/tasks/index.jsonl"
     if tasks.exists():
         for line in tasks.read_text(encoding="utf-8").splitlines():
