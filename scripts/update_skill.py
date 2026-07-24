@@ -34,9 +34,6 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix="loop-skill-update-") as staging_name:
         staging = Path(staging_name) / "source"
         run(["git", "clone", "--depth", "1", "--branch", args.ref, args.source, str(staging)])
-        git_dir = staging / ".git"
-        if git_dir.exists():
-            shutil.rmtree(git_dir)
         backup = target.with_name(
             f"{target.name}.backup-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
         )
@@ -44,7 +41,7 @@ def main() -> int:
             target.rename(backup)
             print(f"backup: {backup}")
         try:
-            shutil.copytree(staging, target)
+            shutil.copytree(staging, target, ignore=shutil.ignore_patterns(".git"))
         except Exception:
             if target.exists():
                 shutil.rmtree(target)
