@@ -28,7 +28,36 @@
 
 ## 生成内容
 
-典型输出包括：
+调用 Skill 后，AI 会根据目标项目的实际文件补齐以下内容。已经存在且有效的文件会保留，项目专属事实不会被复制到通用宪法中。
+
+| 输出 | 作用 |
+|---|---|
+| `.agent/constitution.md` | 跨项目通用的计划、证据、评审、测试、知识和恢复原则 |
+| `.agent/README.md` | Agent 每次执行任务时使用的操作入口和完整工作循环 |
+| `.agent/project.md` | 项目文档入口和职责映射，不重复业务内容 |
+| `.agent/config.yaml` | 项目元数据、权威文档、工作流和受保护路径配置 |
+| `.agent/context/builder.yaml` | 定义上下文加载顺序、必需字段和排除内容 |
+| `.agent/index/knowledge-index.yaml` | 将任务领域映射到需要读取的项目文档和 Agent 知识 |
+| `.agent/state/current.yaml` | 当前任务阶段、目标、风险、下一步和验证状态 |
+| `.agent/state/roadmap.yaml` | 项目级路线图和每项工作的验收条件 |
+| `.agent/state/blockers.yaml` | 当前阻塞项、影响范围和解除条件 |
+| `.agent/tasks/` | 任务记录模板，包含范围、计划、验收、风险和尝试次数 |
+| `.agent/events/` | 不可变的任务事实、异常和执行结果 |
+| `.agent/lessons/` | 从事件中提取、经过审核的经验和根因 |
+| `.agent/rules/` | 可执行、可检查的项目规则 |
+| `.agent/skills/` | 可复用的操作流程、输入、输出和验证方式 |
+| `.agent/memory/` | 稳定的业务、架构和术语知识 |
+| `.agent/decisions/` | 经过评审的项目、架构和部署决策 |
+| `.agent/reviews/` | 任务、知识 Patch 和 E2E 例外的审核记录 |
+| `.agent/hooks/` | 任务前、任务后、危险操作和知识更新的检查协议 |
+| `.agent/requirements/` | 后端、前端、数据库、API 和部署需求模板 |
+| `.agent/acceptance/` | 后端、API、测试和前端 E2E 的验收标准 |
+| `.agent/schemas/` | Event、Task、Knowledge、Review、Patch、Audit 的机器校验规则 |
+| `.agent/compiler/` | Knowledge Patch 的校验、提议、审核、应用和审计程序 |
+| `.agent/patches/` | proposed/reviewed/applied/rejected 的知识变更状态目录 |
+| `.agent/audit/` | Compiler 操作的追加式审计记录 |
+
+典型目录结构如下：
 
 ```text
 .agent/
@@ -55,6 +84,16 @@
 ```
 
 其中 `.agent/constitution.md` 只保存跨项目通用的 Loop Engineering 原则；项目特有约束仍然保留在项目自己的 `docs/` 或根目录文档中。
+
+## 调用 Skill 后是否全部自动生成
+
+是，但需要区分“Skill 工作流”和“初始化脚本”：
+
+1. **直接调用 Skill**：AI 会先读取项目文档，再创建或补齐上表中的 `.agent` 文件，填写项目索引、权威文档引用、状态和 E2E 要求，最后执行校验和测试。
+2. **单独运行 `bootstrap_loop.py`**：脚本只创建缺失的基础骨架和目录，目的是安全初始化；它不会自行理解项目文档，也不会替 AI 编写项目相关索引、抽取报告、完整 Schema 或知识内容。
+3. **已有文件**：Skill 不会覆盖有效文件，而是检查、补充缺口并报告冲突。
+
+因此，推荐直接调用 Skill；脚本适合在需要先快速建立空目录，或其他自动化工具需要一个安全初始化步骤时使用。
 
 ## 使用方式
 
@@ -96,6 +135,7 @@ python scripts/bootstrap_loop.py --root .
 ## 目录说明
 
 - `SKILL.md`：AI 使用说明和执行流程
+- `README.md`：项目功能、输出文件和使用说明
 - `references/`：规范抽取和输出契约
 - `scripts/bootstrap_loop.py`：增量式 `.agent` 初始化脚本
 - `evals/evals.json`：Skill 评估用例

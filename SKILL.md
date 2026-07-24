@@ -74,6 +74,12 @@ Ensure these exist and are coherent:
 - `compiler/` with validation, proposal, review, apply, rollback metadata, and
   append-only audit behavior.
 
+The final output is the complete `.agent` layer, not merely the files created
+by the helper script. Explain each generated file in the final report using the
+output contract in `references/output-contract.md`. Distinguish files that were
+created, files that were updated after reading project docs, and files that
+were preserved.
+
 Use placeholders only in files whose name begins with `_` or in explicitly
 documented templates. Live state, config, and indexes must contain real paths
 or empty collections, not angle-bracket placeholders.
