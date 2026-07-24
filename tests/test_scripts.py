@@ -51,6 +51,9 @@ def test_runtime_routes_simple_and_cross_boundary_tasks(tmp_path: Path) -> None:
     cross = subprocess.run([sys.executable, str(cli), "route", "--root", str(tmp_path), "--task", "fix frontend API and database bug", "--json"], capture_output=True, text=True)
     assert '"level": "S0"' in simple.stdout
     assert '"level": "S2"' in cross.stdout
+    chinese = subprocess.run([sys.executable, str(cli), "route", "--root", str(tmp_path), "--task", "API 地址 我现在采集插件需要采集到我的本地，这个怎么修改才能实现？", "--json"], capture_output=True, text=True)
+    assert '"level": "S2"' in chinese.stdout
+    assert '"delegate": true' in chinese.stdout
 
 
 def test_runtime_task_start_is_idempotent(tmp_path: Path) -> None:

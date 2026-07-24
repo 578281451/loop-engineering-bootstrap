@@ -24,6 +24,14 @@ change scope, safety, permission, or expected behavior. `L1/report_only`
 prevents unattended mutation, merge, push, and deployment; it does not prevent
 implementation in an explicitly requested interactive conversation.
 
+Read `references/delegation-runtime.md`. Users must not be required to know
+the routing levels or Agent roles. When the router returns S2/S3, automatically
+dispatch bounded child work through the host Agent's available delegation
+mechanism, run the independent closer/verifier, and report the actual mode. A
+`delegate: true` result is not complete until delegation evidence exists; if
+delegation is unavailable, record `blocked_delegation` instead of pretending
+the task was orchestrated.
+
 ## Design Reference
 
 The runtime patterns are informed by

@@ -15,9 +15,9 @@ def normalize(value: str) -> str:
 
 def route(task: str, files: list[str]) -> dict[str, Any]:
     text = normalize(task + " " + " ".join(files)); reasons = []
-    high = any(x in text for x in ("production", "migration", "security", "delete data", "architecture"))
-    cross = any(x in text for x in ("frontend", "backend", "api", "database", "cross-module", "multiple services"))
-    e2e = any(x in text for x in ("e2e", "user flow", "browser", "page", "frontend"))
+    high = any(x in text for x in ("production", "migration", "security", "delete data", "architecture", "生产", "迁移", "安全", "删除数据", "架构"))
+    cross = any(x in text for x in ("frontend", "backend", "api", "database", "cross-module", "multiple services", "前端", "后端", "接口", "api 地址", "采集插件", "浏览器插件", "本地", "redis", "服务依赖"))
+    e2e = any(x in text for x in ("e2e", "user flow", "browser", "page", "frontend", "前端", "浏览器", "页面", "插件"))
     if high:
         level, mode, closer = "S3", "orchestrated", "independent_human_gate"; reasons.append("high_risk")
     elif cross:
